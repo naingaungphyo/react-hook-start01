@@ -1,11 +1,18 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useMemo } from 'react';
 import axios from 'axios';
 
+import List from './List';
+import { useFormInput } from '../hooks/forms';
+
 const todo = (props) => {
-  const [todoName, setTodoName] = useState(''); // return array of ['currentState', 'function']
+  // const [inputIsValid, setInputIsValid] = useState(false);
+  // const [todoName, setTodoName] = useState(''); // return array of ['currentState', 'function']
   // const [submittedTodo, setSubmittedTodo] = useState(null);
   // const [todoList, setTodoList] = useState([]); // no more need if we use reducer
   // const [todoState, setTodoState] = useState({ userInput: '', todoList: [] });
+
+  // const todoInputRef = useRef();
+  const todoInput = useFormInput();
 
   const todoListReducer = (state, action) => {
     switch (action.type) {
@@ -35,16 +42,16 @@ const todo = (props) => {
     return () => {
       console.log('Cleanup');
     };
-  }, [todoName]);
-
-  const mouseMoveHandler = (event) => {
-    console.log(event.clientX, event.clientY);
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousemove', mouseMoveHandler);
-    return () => document.removeEventListener('mousemove', mouseMoveHandler);
   }, []);
+
+  // const mouseMoveHandler = (event) => {
+  //   console.log(event.clientX, event.clientY);
+  // };
+
+  // useEffect(() => {
+  //   document.addEventListener('mousemove', mouseMoveHandler);
+  //   return () => document.removeEventListener('mousemove', mouseMoveHandler);
+  // }, []);
 
   // useEffect(() => {
   //   if (submittedTodo) {
@@ -52,11 +59,13 @@ const todo = (props) => {
   //   }
   // }, [submittedTodo]);
 
-  const inputChangeHandler = (event) => {
-    setTodoName(event.target.value);
-  };
+  // const inputChangeHandler = (event) => {
+  //   setTodoName(event.target.value);
+  // };
 
   const todoAddHandler = () => {
+    const todoName = todoInput.value;
+    // const todoName = todoInputRef.current.value;
     axios
       .post('https://react-my-burger-5465f.firebaseio.com/todos.json', { name: todoName })
       .then((res) => {
@@ -94,19 +103,36 @@ const todo = (props) => {
   //   });
   // };
 
+  // const inputValidationHandler = (event) => {
+  //   if (event.target.value.trim() === '') {
+  //     setInputIsValid(false);
+  //   } else {
+  //     setInputIsValid(true);
+  //   }
+  // };
+
   return (
     <React.Fragment>
-      <input type="text" placeholder="Todo" onChange={inputChangeHandler} value={todoName} />
+      <input
+        type="text"
+        placeholder="Todo"
+        onChange={todoInput.onChange}
+        value={todoInput.value}
+        // ref={todoInputRef}
+        // onChange={inputValidationHandler}
+        style={{ backgroundColor: todoInput.validity ? 'transparent' : 'red' }}
+        // style={{ backgroundColor: inputIsValid ? 'transparent' : 'red' }}
+        // onChange={inputChangeHandler} value={todoName}
+      />
       <button type="button" onClick={todoAddHandler}>
         Add
       </button>
-      <ul>
-        {todoList.map((todo) => (
-          <li key={todo.id} onClick={todoRemoveHandler.bind(this, todo.id)}>
-            {todo.name}
-          </li>
-        ))}
-      </ul>
+      {useMemo(
+        () => (
+          <List items={todoList} onClick={todoRemoveHandler} />
+        ),
+        [todoList]
+      )}
     </React.Fragment>
   );
 };
